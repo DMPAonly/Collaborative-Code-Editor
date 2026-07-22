@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useState } from "react";
 import CodeEditor from "./Components/CodeEditor";
+import AppRoutes from "./Routes/AppRoutes";
 
 function App() {
-
   return (
     <>
-      <CodeEditor/>
+      <AppRoutes />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
