@@ -1,18 +1,15 @@
-function Button({ children, type = "button", onClick }) {
+function Button({ children, type = "button", onClick, disabled = false }) {
   return (
     <button
       type={type}
       onClick={onClick}
-      className="
-        w-full
-        bg-blue-600
-        hover:bg-blue-700
-        text-white
-        py-3
-        rounded-lg
-        font-semibold
-        transition
-      "
+      disabled={disabled}
+      className={`w-full rounded-lg py-3 font-semibold transition
+        ${
+          disabled
+            ? "cursor-not-allowed bg-gray-400 text-white"
+            : "bg-blue-600 text-white hover:bg-blue-700"
+        }`}
     >
       {children}
     </button>

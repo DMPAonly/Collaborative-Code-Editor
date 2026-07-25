@@ -36,7 +36,11 @@ function Signup() {
 
     setErrors({});
 
-    navigate("/verify-email");
+    navigate("/verify-email", {
+      state: {
+        email: formData.email,
+      },
+    });
   };
 
   return (
@@ -92,7 +96,13 @@ function Signup() {
         <button
           type="button"
           className="ml-2 text-blue-600 hover:underline"
-          onClick={() => navigate("/login")}
+          onClick={() =>
+            navigate("/login", {
+              state: {
+                email: formData.email,
+              },
+            })
+          }
         >
           Login
         </button>
