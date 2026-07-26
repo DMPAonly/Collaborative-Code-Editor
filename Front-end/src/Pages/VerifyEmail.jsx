@@ -67,7 +67,11 @@ function VerifyEmail() {
       setSuccess("Email verified successfully!");
 
       setTimeout(() => {
-        navigate("/login");
+        navigate("/login", {
+          state: {
+            message: "Email verified successfully! Please login.",
+          },
+        });
       }, 1500);
 
       return;
