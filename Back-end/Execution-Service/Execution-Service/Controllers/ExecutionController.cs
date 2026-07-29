@@ -34,7 +34,7 @@ namespace Execution_Service.Controllers
         public async Task<IActionResult> Submit([FromBody] CodeExecutionRequest request)
         {
             // Public endpoint Judge0 will call back
-            var callbackUrl = $"{Request.Scheme}://{Request.Host}/api/execution/callback";
+            var callbackUrl = $"https://{Request.Host}/api/execution/callback";
 
             //var callbackUrl = "https://8q7vtx8v-7213.inc1.devtunnels.ms/api/execution/callback";
 
