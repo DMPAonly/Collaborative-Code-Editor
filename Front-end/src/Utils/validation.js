@@ -52,3 +52,15 @@ export const validateLogin = (formData) => {
 
   return errors;
 };
+
+export const validateForgotPassword = (email) => {
+  const errors = {};
+
+  if (!email.trim()) {
+    errors.email = "Email is required.";
+  } else if (!/\S+@\S+\.\S+/.test(email)) {
+    errors.email = "Please enter a valid email address.";
+  }
+
+  return errors;
+};

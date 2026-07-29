@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import { verifyEmail, resendOtp } from "../services/authService";
 import AuthLayout from "../layouts/AuthLayout";
 import OTPInput from "../components/OTPInput";
 import Button from "../components/Button";
@@ -15,6 +15,8 @@ function VerifyEmail() {
   const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -33,29 +35,35 @@ function VerifyEmail() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const handleResendOtp = () => {
-    // Later this will call the backend API
-    // Example:
-    // await resendOtp(email);
-
-    console.log("Resending OTP...");
-
-    // Clear previous OTP
-    setOtp(["", "", "", ""]);
-
-    // Clear previous messages
+  const handleResendOtp = async () => {
+    setIsResending(true);
     setError("");
     setSuccess("");
 
-    // Reset attempts
-    setAttemptsLeft(MAX_ATTEMPTS);
+    try {
+      const response = await resendOtp(email);
 
-    // Restart timer
-    setTimeLeft(60);
-    setCanResend(false);
+      setSuccess(response.message);
+
+      // Clear previous OTP
+      setOtp(["", "", "", ""]);
+
+      // Reset attempts
+      setAttemptsLeft(MAX_ATTEMPTS);
+
+      // Restart timer
+      setTimeLeft(60);
+      setCanResend(false);
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Unable to resend OTP. Please try again.",
+      );
+    } finally {
+      setIsResending(false);
+    }
   };
-
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (timeLeft === 0) {
       setError("OTP has expired. Please resend a new OTP.");
       return;
@@ -63,8 +71,22 @@ function VerifyEmail() {
 
     const enteredOtp = otp.join("");
 
-    if (enteredOtp === "1234") {
-      setSuccess("Email verified successfully!");
+    if (enteredOtp.length !== 4) {
+      setError("Please enter the complete 4-digit OTP.");
+      return;
+    }
+
+    setIsVerifying(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await verifyEmail({
+        email,
+        otp: enteredOtp,
+      });
+
+      setSuccess(response.message);
 
       setTimeout(() => {
         navigate("/login", {
@@ -73,31 +95,32 @@ function VerifyEmail() {
           },
         });
       }, 1500);
+    } catch (error) {
+      const remainingAttempts = attemptsLeft - 1;
 
-      return;
+      if (remainingAttempts === 0) {
+        setError("Too many failed attempts. Redirecting to Sign Up...");
+
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+
+        return;
+      }
+
+      setAttemptsLeft(remainingAttempts);
+
+      setError(
+        error.response?.data?.message ||
+          `Incorrect OTP. ${
+            remainingAttempts
+          } attempt${remainingAttempts > 1 ? "s" : ""} remaining.`,
+      );
+
+      setOtp(["", "", "", ""]);
+    } finally {
+      setIsVerifying(false);
     }
-
-    const remainingAttempts = attemptsLeft - 1;
-
-    if (remainingAttempts === 0) {
-      setError("Too many failed attempts. Redirecting to Sign Up...");
-
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
-
-      return;
-    }
-
-    setAttemptsLeft(remainingAttempts);
-
-    setError(
-      `Incorrect OTP. ${
-        remainingAttempts
-      } attempt${remainingAttempts > 1 ? "s" : ""} remaining.`,
-    );
-
-    setOtp(["", "", "", ""]);
   };
 
   return (
@@ -113,9 +136,14 @@ function VerifyEmail() {
           <button
             type="button"
             onClick={handleResendOtp}
-            className="mt-2 font-medium text-blue-600 hover:underline"
+            disabled={isResending}
+            className={`mt-2 font-medium ${
+              isResending
+                ? "cursor-not-allowed text-gray-400"
+                : "text-blue-600 hover:underline"
+            }`}
           >
-            Resend OTP
+            {isResending ? "Resending..." : "Resend OTP"}
           </button>
         ) : (
           <p className="mt-2 text-sm text-gray-600">
@@ -136,8 +164,12 @@ function VerifyEmail() {
       {error && (
         <p className="mt-4 text-center text-sm text-red-500">{error}</p>
       )}
-      <Button type="button" onClick={handleVerify} disabled={timeLeft === 0}>
-        Verify
+      <Button
+        type="button"
+        onClick={handleVerify}
+        disabled={timeLeft === 0 || isVerifying}
+      >
+        {isVerifying ? "Verifying..." : "Verify"}
       </Button>
     </AuthLayout>
   );

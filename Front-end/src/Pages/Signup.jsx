@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { signup } from "../services/authService";
 import AuthLayout from "../layouts/AuthLayout";
 import InputField from "../components/InputField";
 import Button from "../components/Button";
@@ -8,7 +8,8 @@ import { validateSignup } from "../Utils/validation";
 
 function Signup() {
   const navigate = useNavigate();
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -22,9 +23,10 @@ function Signup() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-  };
 
-  const handleSubmit = (e) => {
+    setApiError("");
+  };
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const validationErrors = validateSignup(formData);
@@ -35,12 +37,31 @@ function Signup() {
     }
 
     setErrors({});
+    setApiError("");
+    setIsLoading(true);
 
-    navigate("/verify-email", {
-      state: {
+    try {
+      const response = await signup({
+        username: formData.username,
         email: formData.email,
-      },
-    });
+        password: formData.password,
+      });
+
+      if (response.success) {
+        navigate("/verify-email", {
+          state: {
+            email: formData.email,
+          },
+        });
+      }
+    } catch (error) {
+      setApiError(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -87,8 +108,12 @@ function Signup() {
           onChange={handleChange}
           error={errors.confirmPassword}
         />
-
-        <Button type="submit">Sign Up</Button>
+        {apiError && (
+          <p className="mb-4 text-center text-sm text-red-500">{apiError}</p>
+        )}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Creating Account..." : "Sign Up"}
+        </Button>
       </form>
       <div className="text-center mt-6">
         <span className="text-gray-500">Already have an account?</span>
