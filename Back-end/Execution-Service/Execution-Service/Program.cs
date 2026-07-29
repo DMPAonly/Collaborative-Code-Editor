@@ -6,9 +6,26 @@ using Microsoft.Extensions.Http.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var allowReactAppPolicy = "_allowReactApp";
+
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: allowReactAppPolicy,
+        policy =>
+        {
+            policy.WithOrigins(
+                    "http://localhost:5173",                   // Local Vite dev server
+                    "http://localhost:3000",                   // Local Create-React-App / Next.js
+                    "https://your-production-frontend.com"     // Add your frontend production domain here later
+                  )
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // Needed if sending credentials/cookies/SignalR
+        });
+});
 
 // Register Typed HttpClient for Judge0
 builder.Services.AddHttpClient<Judge0Client>()
@@ -29,6 +46,7 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+app.UseCors(allowReactAppPolicy);
 app.UseRouting();
 
 // Apply Rate Limiting Middleware
