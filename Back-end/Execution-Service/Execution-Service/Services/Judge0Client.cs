@@ -64,5 +64,52 @@ namespace Execution_Service.Services
                 return null;
             }
         }
+
+        public async Task<ExecutionResultDto?> PollResultAsync(string token, string roomId)
+        {
+            var judge0BaseUrl = _config["Judge0:BaseUrl"];
+            var authToken = _config["Judge0:AuthToken"];
+
+            int maxAttempts = 10;
+            int delayMs = 500; // Poll every 500ms
+
+            for (int i = 0; i < maxAttempts; i++)
+            {
+                await Task.Delay(delayMs);
+
+                var request = new HttpRequestMessage(HttpMethod.Get, $"{judge0BaseUrl}/submissions/{token}?base64_encoded=false");
+                if (!string.IsNullOrEmpty(authToken))
+                {
+                    request.Headers.Add("X-Judge0-Key", authToken);
+                }
+
+                // Use the class's injected _httpClient instead of creating new instances
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode) continue;
+
+                var payload = await response.Content.ReadFromJsonAsync<Judge0ResponsePayload>();
+
+                // Status ID > 2 means finished (3 = Accepted, 4 = Wrong Answer, 6 = Compile Error)
+                if (payload?.Status != null && payload.Status.Id > 2)
+                {
+                    var output = payload.Stdout ?? string.Empty;
+
+                    // Fixed property reference (CompileOutput matching Judge0ResponsePayload)
+                    var error = !string.IsNullOrEmpty(payload.CompileOutput)
+                        ? payload.CompileOutput
+                        : (payload.Stderr ?? string.Empty);
+
+                    // Fixed Record Constructor Instantiation
+                    return new ExecutionResultDto(
+                        RoomId: roomId,
+                        Output: output,
+                        Error: error,
+                        Status: payload.Status.Description ?? "Completed"
+                    );
+                }
+            }
+
+            return null; // Timed out
+        }
     }
 }
