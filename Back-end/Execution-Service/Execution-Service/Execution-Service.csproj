@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Execution_Service</RootNamespace>
+    <BaseOutputPath>C:\Users\dev87\vsOutput</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
