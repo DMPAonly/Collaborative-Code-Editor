@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: authentication-service
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password:  ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # ─────────────────────────────────────────────────────────────
+  # Email (Gmail SMTP)
+  # ─────────────────────────────────────────────────────────────
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+
+    properties:
+      mail:
+        debug: true
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  # ─────────────────────────────────────────────────────────────
+  # Thymeleaf
+  # ─────────────────────────────────────────────────────────────
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+
+server:
+  port: 8080
+
+# ─────────────────────────────────────────────────────────────
+# Application Settings
+# ─────────────────────────────────────────────────────────────
+app:
+  base-url: http://localhost:8080
+
+  # URL of the React frontend — used when generating links inside emails.
+  # In production, override this with the FRONTEND_URL environment variable.
+  # Example: https://app.collabcode.io
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+
+  jwt:
+    secret: changeme-collabcode-jwt-secret-key-do-not-use-in-production-01
+    expiration: 900000
+    refresh-expiration: 604800000
+
+  mail:
+    from: ${MAIL_USERNAME}
+    from-name: CollaborativeCodeEditor
+
+# ─────────────────────────────────────────────────────────────
+# Logging
+# ─────────────────────────────────────────────────────────────
+logging:
+  level:
+    org.springframework.mail: DEBUG
+    org.eclipse.angus.mail: DEBUG
+    org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: ERROR
