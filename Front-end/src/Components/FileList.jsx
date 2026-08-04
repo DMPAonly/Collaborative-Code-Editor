@@ -20,9 +20,10 @@ function FileList({ files, onDelete }) {
     <div className="space-y-3">
       {files.map((file) => (
         <FileCard
-          key={file.id}
+          key={file.file_id}
           file={file}
-          onClick={() => navigate(`/file/${file.id}`)}
+          onClick={() => navigate(`/file/${file.file_id}`)}
+          onEdit={() => navigate(`/editor/${file.file_id}`)}
           onDelete={() => onDelete(file)}
         />
       ))}

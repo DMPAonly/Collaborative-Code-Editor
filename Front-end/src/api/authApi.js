@@ -5,13 +5,18 @@ import axios from "axios";
  * In development: reads VITE_API_BASE_URL from .env (defaults to http://localhost:8080).
  * In production:  set VITE_API_BASE_URL in your CI/CD environment.
  */
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"}/api/v1/auth`;
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? "https://authentication-service-937514972080.europe-west1.run.app"}/api/v1/auth`;
+
+const BASE_URL_W = "http://localhost:5000/api/files/workspace";
 
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
+export const api2 = axios.create({
+  baseURL: BASE_URL_W,
+});
 // Attach JWT from localStorage on every request that needs authentication
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
@@ -20,6 +25,23 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api2.interceptors.request.use(
+  (config) => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (user?.email) {
+        config.headers.email = user.email;
+      }
+    } catch (error) {
+      console.error("Failed to read user from localStorage:", error);
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
 // ─── Auth API calls ──────────────────────────────────────────────────────────
 

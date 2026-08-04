@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../../api/authApi";
+import { api2 } from "../../api/authApi";
 import CreateFileModal from "../CreateFileModal";
 import DeleteFileModal from "../DeleteFileModal";
 import UploadButton from "../UploadButton";
@@ -13,7 +13,7 @@ function Workspace() {
 
   const fetchFiles = async () => {
     try {
-      const response = await api.get("/files");
+      const response = await api2.get("/");
       setFiles(response.data.files);
     } catch (error) {
       console.error(error);
@@ -28,12 +28,14 @@ function Workspace() {
     const selectedFile = event.target.files[0];
 
     if (!selectedFile) return;
+    console.log(selectedFile);
+    console.log(event.target.files);
 
     const formData = new FormData();
     formData.append("file", selectedFile);
 
     try {
-      await api.post("/files/upload", formData);
+      await api2.post("/upload", formData);
 
       // Refresh file list
       fetchFiles();
@@ -43,14 +45,14 @@ function Workspace() {
 
       alert("File uploaded successfully!");
     } catch (error) {
-      console.error(error);
+      console.error(error.response?.data);
       alert(error.response?.data?.message || "Upload failed");
     }
   };
 
   const handleCreateFile = async (filename) => {
     try {
-      await api.post("/files/create", {
+      await api2.post("/create", {
         filename,
       });
 
@@ -65,7 +67,7 @@ function Workspace() {
 
   const handleDeleteFile = async () => {
     try {
-      await api.delete(`/files/${selectedFile.id}`);
+      await api2.delete(`/${selectedFile.file_id}`);
 
       fetchFiles();
 

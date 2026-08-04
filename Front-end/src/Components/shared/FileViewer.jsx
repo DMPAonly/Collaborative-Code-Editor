@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { api } from "../../api/authApi";
+import { api2 } from "../../api/authApi";
 
 function FileViewer() {
   const { id } = useParams();
@@ -13,7 +13,7 @@ function FileViewer() {
 
   const fetchFile = async () => {
     try {
-      const response = await api.get(`/files/${id}`);
+      const response = await api2.get(`/${id}`);
       setFile(response.data.file);
     } catch (error) {
       console.error(error);
