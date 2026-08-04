@@ -28,8 +28,6 @@ function Workspace() {
     const selectedFile = event.target.files[0];
 
     if (!selectedFile) return;
-    console.log(selectedFile);
-    console.log(event.target.files);
 
     const formData = new FormData();
     formData.append("file", selectedFile);
@@ -37,10 +35,8 @@ function Workspace() {
     try {
       await api2.post("/upload", formData);
 
-      // Refresh file list
       fetchFiles();
 
-      // Allow uploading the same file again
       event.target.value = "";
 
       alert("File uploaded successfully!");
@@ -82,36 +78,50 @@ function Workspace() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="mx-auto max-w-5xl p-8">
-        <h1 className="mb-8 text-4xl font-bold">Workspace</h1>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto max-w-6xl px-8 py-10">
+        <div className="mb-10">
+          <h1 className="text-4xl font-bold tracking-tight text-white">
+            Workspace
+          </h1>
 
-        <div className="mb-8 flex gap-4">
+          <p className="mt-2 text-slate-400">
+            Upload, create and manage your source code files.
+          </p>
+        </div>
+
+        <div className="mb-10 flex flex-wrap gap-4">
           <UploadButton onFileSelect={handleFileSelect} />
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="rounded-lg bg-green-600 px-5 py-2 text-white hover:bg-green-700"
+            className="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white transition-all duration-200 hover:bg-blue-700 hover:shadow-lg"
           >
             Create File
           </button>
         </div>
 
-        <h2 className="mb-4 text-2xl font-semibold">Uploaded Files</h2>
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+          <h2 className="mb-5 text-2xl font-semibold text-slate-200">
+            Your Files
+          </h2>
 
-        <FileList
-          files={files}
-          onDelete={(file) => {
-            setSelectedFile(file);
-            setShowDeleteModal(true);
-          }}
-        />
+          <FileList
+            files={files}
+            onDelete={(file) => {
+              setSelectedFile(file);
+              setShowDeleteModal(true);
+            }}
+          />
+        </div>
       </div>
+
       <CreateFileModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreateFile}
       />
+
       <DeleteFileModal
         isOpen={showDeleteModal}
         filename={selectedFile?.filename}
