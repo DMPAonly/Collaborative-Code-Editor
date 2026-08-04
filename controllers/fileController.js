@@ -11,8 +11,12 @@ const allowedExtensions = {
   ".cs": "csharp",
 };
 
+// Helper function to fetch user id using email
+
 const uploadFile = async (req, res) => {
   try {
+    const userId = req.user.id;
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -34,17 +38,31 @@ const uploadFile = async (req, res) => {
     const filename = req.file.originalname;
     const content = req.file.buffer.toString("utf8");
 
-    const query = `
-      INSERT INTO files (filename, language, content)
-      VALUES ($1, $2, $3)
+    const existing = await pool.query(
+      `SELECT file_id
+   FROM documents
+   WHERE filename = $1
+   AND id = $2`,
+      [filename, userId],
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "File already exists.",
+      });
+    }
+
+    const result = await pool.query(
+      `
+      INSERT INTO documents (filename, language, content, id)
+      VALUES ($1, $2, $3, $4)
       RETURNING *;
-    `;
+      `,
+      [filename, language, content, userId],
+    );
 
-    const values = [filename, language, content];
-
-    const result = await pool.query(query, values);
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "File uploaded successfully.",
       file: result.rows[0],
@@ -52,7 +70,7 @@ const uploadFile = async (req, res) => {
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
@@ -61,16 +79,21 @@ const uploadFile = async (req, res) => {
 
 const getAllFiles = async (req, res) => {
   try {
-    const query = `
-            SELECT id,
-                   filename,
-                   language,
-                   created_at
-            FROM files
-            ORDER BY created_at DESC;
-        `;
+    const userId = req.user.id;
 
-    const result = await pool.query(query);
+    const result = await pool.query(
+      `
+      SELECT
+          file_id,
+          filename,
+          language,
+          created_at
+      FROM documents
+      WHERE id = $1
+      ORDER BY created_at DESC;
+      `,
+      [userId],
+    );
 
     return res.status(200).json({
       success: true,
@@ -89,19 +112,25 @@ const getAllFiles = async (req, res) => {
 
 const getFileById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const userId = req.user.id;
 
-    const query = `
-      SELECT id,
-             filename,
-             language,
-             content,
-             created_at
-      FROM files
-      WHERE id = $1;
-    `;
+    const { id: fileId } = req.params;
 
-    const result = await pool.query(query, [id]);
+    const result = await pool.query(
+      `
+      SELECT
+          file_id,
+          filename,
+          language,
+          content,
+          created_at,
+          updated_at
+      FROM documents
+      WHERE file_id = $1
+      AND id = $2;
+      `,
+      [fileId, userId],
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -126,6 +155,8 @@ const getFileById = async (req, res) => {
 
 const createFile = async (req, res) => {
   try {
+    const userId = req.user.id;
+
     const { filename } = req.body;
 
     if (!filename) {
@@ -136,6 +167,7 @@ const createFile = async (req, res) => {
     }
 
     const extension = path.extname(filename).toLowerCase();
+
     const language = allowedExtensions[extension];
 
     if (!language) {
@@ -146,8 +178,13 @@ const createFile = async (req, res) => {
     }
 
     const existing = await pool.query(
-      "SELECT id FROM files WHERE filename = $1",
-      [filename],
+      `
+      SELECT file_id
+      FROM documents
+      WHERE filename = $1
+      AND id = $2;
+      `,
+      [filename, userId],
     );
 
     if (existing.rows.length > 0) {
@@ -158,10 +195,12 @@ const createFile = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO files(filename, language, content)
-       VALUES($1,$2,$3)
-       RETURNING *`,
-      [filename, language, ""],
+      `
+      INSERT INTO documents (filename, language, content, id)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
+      `,
+      [filename, language, "", userId],
     );
 
     return res.status(201).json({
@@ -180,11 +219,18 @@ const createFile = async (req, res) => {
 
 const deleteFile = async (req, res) => {
   try {
-    const { id } = req.params;
+    const userId = req.user.id;
+
+    const { id: fileId } = req.params;
 
     const result = await pool.query(
-      "DELETE FROM files WHERE id = $1 RETURNING *",
-      [id],
+      `
+      DELETE FROM documents
+      WHERE file_id = $1
+      AND id = $2
+      RETURNING *;
+      `,
+      [fileId, userId],
     );
 
     if (result.rows.length === 0) {

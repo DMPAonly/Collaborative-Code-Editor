@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const getUser = require("../middleware/getUser");
 
 const upload = require("../config/multer");
 
@@ -11,14 +12,14 @@ const {
   deleteFile,
 } = require("../controllers/fileController");
 
-router.get("/", getAllFiles);
+router.get("/", getUser, getAllFiles);
 
-router.get("/:id", getFileById);
+router.get("/:id", getUser, getFileById);
 
-router.post("/create", createFile);
+router.post("/create", getUser, createFile);
 
-router.post("/upload", upload.single("file"), uploadFile);
+router.post("/upload", getUser, upload.single("file"), uploadFile);
 
-router.delete("/:id", deleteFile);
+router.delete("/:id", getUser, deleteFile);
 
 module.exports = router;
