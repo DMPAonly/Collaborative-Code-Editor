@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/files", fileRoutes);
+app.use("/api/files/workspace", fileRoutes);
 
 const PORT = process.env.PORT || 5000;
 
