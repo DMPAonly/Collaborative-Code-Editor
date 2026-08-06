@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var allowReactAppPolicy = "_allowReactApp";
 
+
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
@@ -19,7 +20,7 @@ builder.Services.AddCors(options =>
             policy.WithOrigins(
                     "http://localhost:5173",                   // Local Vite dev server
                     "http://localhost:3000",                   // Local Create-React-App / Next.js
-                    "https://cce-frontend-kappa.vercel.app/"     // Add your frontend production domain here later
+                    "https://your-production-frontend.com"     // Add your frontend production domain here later
                   )
                   .AllowAnyHeader()
                   .AllowAnyMethod()
