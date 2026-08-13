@@ -1,0 +1,56 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# ASP.NET Core local development
+appsettings.Development.json
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# User secrets
+secrets.json
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test results
+TestResults/
+*.trx
+
+# Coverage
+coverage/
+coverage.opencover.xml
+
+# Publish output
+publish/
+*.publishsettings
+
+# Docker local overrides
+docker-compose.override.yml
