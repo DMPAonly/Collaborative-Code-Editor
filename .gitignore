@@ -1,5 +1,36 @@
-node_modules/
+# ===========================
+# Visual Studio
+# ===========================
+.vs/
+*.user
+*.suo
+
+# ===========================
+# .NET
+# ===========================
+**/bin/
+**/obj/
+
+# Development settings
+appsettings.Development.json
+
+# ===========================
+# Node.js
+# ===========================
+**/node_modules/
+
+# Logs
+*.log
+
+# Environment files
 .env
 .env.*
-!.env.example
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
 chat-frontend/
