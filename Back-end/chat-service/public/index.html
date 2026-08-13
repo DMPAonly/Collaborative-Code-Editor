@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Project Chat</h1>
+
+    <div id="messages"></div>
+
+    <br>
+
+    <input type="text" id="messageInput" placeholder="Type message...">
+
+    <button id="sendBtn">
+        Send
+    </button>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:9000");
+        //used by browser to receive msg from server
+        const workspaceId = prompt("Enter workSpace ID");
+        const userId = Number(prompt("Enter user Id"));
+
+        const messagesDiv = document.getElementById("messages");
+        const messageInput = document.getElementById("messageInput");
+        const sendBtn = document.getElementById("sendBtn");
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "chat") {
+
+                const p = document.createElement("p");
+
+                p.innerText =
+                    `${data.userId}: ${data.message}`;
+
+                messagesDiv.appendChild(p);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            if (data.type === "history") {
+                data.messages.forEach((msg) => {
+                    const p = document.createElement("p");
+                    p.innerText = `${msg.user_id}: ${msg.message}`;
+                    messagesDiv.appendChild(p);
+                });
+
+            }
+
+            if (data.type === "document") {
+                console.log("Document Loaded");
+                console.log(data);
+            }
+        }
+
+
+        socket.onopen = () => {
+            // const message = {
+            //     type: "join",
+            //     roomId: "ABC123",
+            //     username: "Akshaya",
+            // };
+
+            // const message1 = {
+            //     type: "join",
+            //     roomId: "ABC1234",
+            //     username: "Akshaya1"
+            // };
+
+            // const message2 = {
+            //     type: "join",
+            //     roomId: "ABC123",
+            //     username: "Rahul"
+            // };
+
+            // const message3 = {
+            //     type: "join",
+            //     roomId: "ABC123",
+            //     username: "Priya"
+            // };
+
+            // socket.send(JSON.stringify(message));
+            // socket.send(JSON.stringify(message1));
+            // socket.send(JSON.stringify(message2));
+            // socket.send(JSON.stringify(message3));
+
+            socket.send(JSON.stringify({
+                type: "join",
+                workspaceId,
+                userId
+            }));
+
+            socket.send(JSON.stringify({
+                type: "openFile",
+                workspaceId: workspaceId,
+                filename: "Main.java"
+            }));
+
+            sendBtn.addEventListener("click", () => {
+
+                const text = messageInput.value.trim();
+
+                if (text === "") {
+                    return;
+                }
+
+                socket.send(JSON.stringify({
+                    type: "chat",
+                    workspaceId,
+                    userId,
+                    message: text
+
+                }));
+
+                messageInput.value = "";
+
+            });
+        }
+    </script>
+</body>
+
+</html>

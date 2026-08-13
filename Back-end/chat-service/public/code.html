@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Collaborative Code Editor</title>
+</head>
+
+<body>
+
+    <h2>Code Collaboration Test</h2>
+
+    <textarea
+        id="editor"
+        rows="20"
+        cols="100"
+        placeholder="Start typing...">
+    </textarea>
+
+    <script>
+
+        const socket = new WebSocket("ws://localhost:9000");
+
+        const workspaceId = prompt("Workspace ID");
+        const userId = Number(prompt("User ID"));
+
+        const editor = document.getElementById("editor");
+
+        socket.onopen = () => {
+
+            socket.send(JSON.stringify({
+                type: "join",
+                workspaceId,
+                userId
+            }));
+
+            socket.send(JSON.stringify({
+                type: "openFile",
+                workspaceId,
+                filename: "Main.java"
+            }));
+
+        };
+
+        editor.addEventListener("input", () => {
+
+            socket.send(JSON.stringify({
+
+                type: "codeChange",
+
+                workspaceId,
+
+                filename: "Main.java",
+
+                content: editor.value
+
+            }));
+
+        });
+
+        socket.onmessage = (event) => {
+
+            const data = JSON.parse(event.data);
+
+            if (data.type === "codeChange") {
+                editor.value = data.content;
+            }
+
+            if (data.type === "document") {
+                editor.value = data.content;
+            }
+
+        };
+
+    </script>
+
+</body>
+
+</html>
